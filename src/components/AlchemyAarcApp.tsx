@@ -1,8 +1,7 @@
-import { DynamicWidget, useDynamicContext, useIsLoggedIn } from "@dynamic-labs/sdk-react-core";
 import { AarcFundKitModal } from "@aarc-xyz/fundkit-web-sdk";
-import { useEffect } from "react";
-import { setupAarcButtonOverride } from "../utils/aarcButtonOverride";
 import "../index.css";
+import { useAuthModal, useUser } from "@account-kit/react";
+import { AlchemyAccountCard } from "./AlchemyAccountCard";
 
 interface Props {
     isDark: boolean;
@@ -12,27 +11,28 @@ interface Props {
     onThemeToggle: () => void;
 }
 
-const DynamicAarcApp = ({ isDark, logoLight, logoDark, aarcModal }: Props) => {
-    const isLoggedIn = useIsLoggedIn();
-    const { primaryWallet, setShowAuthFlow, } = useDynamicContext();
-
-    useEffect(() => {
-        if (aarcModal && primaryWallet?.address) {
-            const cleanup = setupAarcButtonOverride(aarcModal, primaryWallet.address, { debug: true });
-            return cleanup;
-        }
-    }, [aarcModal, primaryWallet?.address]);
+const AlchemyAarcApp = ({ isDark, logoLight, logoDark, aarcModal }: Props) => {
+    const user = useUser();
+    const isLoggedIn = !!user?.address;
+    const { openAuthModal } = useAuthModal();
 
     const handleFundWallet = () => {
-        if (primaryWallet?.address) {
-            console.log('primaryWallet?.address: ', primaryWallet?.address);
+        if (user?.address) {
+            console.log('primaryWallet?.address: ', user?.address);
             try {
-                aarcModal?.updateDestinationWalletAddress(primaryWallet.address);
+                aarcModal?.updateDestinationWalletAddress(user?.address);
                 aarcModal.openModal();
             } catch (error) {
                 console.error('Error opening Aarc modal:', error);
             }
         }
+    };
+
+    const handleDisconnect = () => {
+        localStorage.clear();
+        sessionStorage.clear();
+
+        window.location.reload();
     };
 
     return (
@@ -52,10 +52,25 @@ const DynamicAarcApp = ({ isDark, logoLight, logoDark, aarcModal }: Props) => {
                         />
                         <img
                             className="h-6 w-auto"
-                            src="/dynamicLogo.svg"
-                            alt="Dynamic Logo"
+                            src="/alchemy-name-logo.svg"
+                            alt="Alchemy name Logo"
                         />
                     </div>
+                    {isLoggedIn && (
+                        <div className="w-[158px] h-[40px]">
+                                    <button
+                                    onClick={handleDisconnect}
+                                    className="w-full h-full flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-aarc-primary border border-[#0033000D] hover:opacity-90 transition-opacity"
+                                >
+                                    <div className="flex items-center rounded-xl justify-center gap-2 w-full">
+                                        <span className="text-aarc-button-text font-semibold whitespace-nowrap">Logout</span>
+                                        <svg width="16" height="16" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
+                                            <path d="M502.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-128-128c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L402.7 224 192 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l210.7 0-73.4 73.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l128-128zM160 96c17.7 0 32-14.3 32-32s-14.3-32-32-32L96 32C43 32 0 75 0 128L0 384c0 53 43 96 96 96l64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0c-17.7 0-32-14.3-32-32l0-256c0-17.7 14.3-32 32-32l64 0z" fill="#003300" />
+                                        </svg>
+                                    </div>
+                                </button>
+                        </div>
+                    )}
                     {/* <div
                         onClick={onThemeToggle}
                         className="w-10 h-10"
@@ -70,7 +85,7 @@ const DynamicAarcApp = ({ isDark, logoLight, logoDark, aarcModal }: Props) => {
 
                     {!isLoggedIn && (
                         <>
-                            <button className="login-signup-button" onClick={() => setShowAuthFlow(true)}>
+                            <button className="login-signup-button" onClick={openAuthModal}>
                                 <div className="placeholder-icon" />
                                 <div className="text-container">
                                     <span>Login or Signup</span>
@@ -91,9 +106,9 @@ const DynamicAarcApp = ({ isDark, logoLight, logoDark, aarcModal }: Props) => {
                             </div>
                         </>
                     )}
-                    {isLoggedIn && primaryWallet && (
+                    {isLoggedIn && (
                         <>
-                            <DynamicWidget />
+                            <AlchemyAccountCard />
                             <button
                                 onClick={handleFundWallet}
                                 className="w-full mt-4 py-3 px-4 bg-aarc-primary text-aarc-button-text font-medium rounded-[42px] hover:bg-opacity-90 transition-colors"
@@ -119,4 +134,4 @@ const DynamicAarcApp = ({ isDark, logoLight, logoDark, aarcModal }: Props) => {
     );
 };
 
-export default DynamicAarcApp;
+export default AlchemyAarcApp;

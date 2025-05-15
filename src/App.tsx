@@ -1,29 +1,30 @@
 import React, { useRef } from 'react';
-import { DynamicContextProvider } from "@dynamic-labs/sdk-react-core";
-import { EthereumWalletConnectors } from "@dynamic-labs/ethereum";
 import { AarcProvider } from './context/AarcProvider';
-import DynamicAarcApp from './components/DynamicAarcApp';
+import AlchemyAarcApp from './components/AlchemyAarcApp';
 import "@aarc-xyz/eth-connector/styles.css"
 import './index.css';
 import { AarcFundKitModal } from '@aarc-xyz/fundkit-web-sdk';
 import { aarcConfig } from './config/aarcConfig';
+import { AlchemyProvider } from './context/AlchemyProvider';
+import { cookieToInitialState } from "@account-kit/core";
+import { alchemyConfig } from './config/alchemyConfig';
 
 const App = () => {
   const aarcModalRef = useRef(new AarcFundKitModal(aarcConfig));
   const aarcModal = aarcModalRef.current;
 
+  const initialState = cookieToInitialState(
+    alchemyConfig,
+    document.cookie ?? undefined
+  );
 
   return (
     <React.StrictMode>
-      <DynamicContextProvider
-      theme="auto"
-        settings={{
-          environmentId: import.meta.env.VITE_DYNAMIC_ENVIRONMENT_ID,
-          walletConnectors: [EthereumWalletConnectors],
-        }}
+      <AlchemyProvider
+        initialState={initialState}
       >
         <AarcProvider aarcModal={aarcModal}>
-          <DynamicAarcApp
+          <AlchemyAarcApp
             isDark={true}
             logoLight="/logo.svg"
             logoDark="/logo.svg"
@@ -31,7 +32,7 @@ const App = () => {
             onThemeToggle={() => {}}
           />
         </AarcProvider>
-      </DynamicContextProvider>
+      </AlchemyProvider>
     </React.StrictMode>
   );
 };

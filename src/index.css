@@ -230,3 +230,7 @@ body {
   background-color: transparent !important;
   background: transparent !important;
 }
+
+.akui-btn, .akui-btn-auth {
+ color: #003300 !important;
+}
